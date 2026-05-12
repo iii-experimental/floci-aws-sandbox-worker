@@ -1,0 +1,104 @@
+---
+title: 'Floci AWS Sandbox'
+description: 'Run narrow, allowlisted AWS emulator checks against a local Floci endpoint from iii.'
+---
+
+`floci-aws-sandbox` is an external iii worker for teams that use [Floci](https://github.com/floci-io/floci) as a local AWS emulator.
+
+Floci covers broad AWS compatibility. This worker intentionally does **not** port Floci into iii and does **not** expose arbitrary shell access. It gives iii a small, safe bridge to a running Floci endpoint:
+
+- `floci::health` checks Floci's LocalStack-compatible health endpoint.
+- `floci::aws` runs one allowlisted AWS CLI operation against the local Floci endpoint.
+- `floci::smoke` runs a representative health + STS/S3/SQS smoke check.
+
+Use it when you want iii workflows to verify or prepare local AWS emulator state without giving them access to real AWS accounts.
+
+## Requirements
+
+- Node.js 20+
+- A running iii engine
+- A running Floci container or binary on port `4566`
+- AWS CLI available as `aws` or configured with `FLOCI_AWS_COMMAND`
+
+```bash
+docker run --rm -p 4566:4566 floci/floci:latest
+```
+
+## Run the Worker
+
+```bash
+cd workers/floci-aws-sandbox
+pnpm install
+III_URL=ws://127.0.0.1:49134 \
+FLOCI_ENDPOINT_URL=http://127.0.0.1:4566 \
+pnpm start
+```
+
+The worker registers as `floci-aws-sandbox` and uses dummy local AWS credentials by default (`test` / `test`), which is the standard local-emulator pattern.
+
+## Functions
+
+<ResponseField name="floci::health" type="function">
+  Check `/_localstack/health` on the configured Floci endpoint.
+
+  <AccordionGroup>
+    <Accordion iconName="settings" title="Parameters">
+      <ResponseField name="endpointUrl" type="string">
+        Optional endpoint override. Defaults to `FLOCI_ENDPOINT_URL` or `http://127.0.0.1:4566`.
+      </ResponseField>
+    </Accordion>
+    <Accordion title="Returns">
+      `{ ok, endpointUrl, status, services?, error? }`
+    </Accordion>
+  </AccordionGroup>
+</ResponseField>
+
+<ResponseField name="floci::aws" type="function">
+  Run an allowlisted AWS CLI operation against Floci.
+
+  <AccordionGroup>
+    <Accordion iconName="settings" title="Parameters">
+      <ResponseField name="service" type="string" required>
+        AWS CLI service token, such as `s3api`, `sqs`, `sts`, `dynamodb`, `lambda`, `iam`, or `kms`.
+      </ResponseField>
+      <ResponseField name="operation" type="string" required>
+        AWS CLI operation token, such as `list-buckets` or `list-queues`.
+      </ResponseField>
+      <ResponseField name="args" type="string[]">
+        Extra CLI arguments. `--profile` and `--cli-input-yaml` are blocked so credentials stay worker-scoped.
+      </ResponseField>
+      <ResponseField name="endpointUrl" type="string">
+        Optional Floci endpoint override.
+      </ResponseField>
+      <ResponseField name="region" type="string">
+        Optional AWS region. Defaults to `AWS_REGION`, `AWS_DEFAULT_REGION`, or `us-east-1`.
+      </ResponseField>
+      <ResponseField name="output" type="'json' | 'text' | 'table'">
+        AWS CLI output format. Defaults to `json`.
+      </ResponseField>
+    </Accordion>
+  </AccordionGroup>
+</ResponseField>
+
+<ResponseField name="floci::smoke" type="function">
+  Run a narrow but representative Floci smoke test: health, STS caller identity, S3 bucket listing, and SQS queue listing.
+</ResponseField>
+
+## Example Invocation
+
+```typescript
+await iii.trigger({
+  function_id: 'floci::aws',
+  payload: {
+    service: 'sqs',
+    operation: 'list-queues',
+  },
+})
+```
+
+## Boundaries
+
+- This worker targets local Floci endpoints, not production AWS.
+- It is not a general AWS shell proxy.
+- It only allowlists AWS services that are useful for local emulator workflows.
+- It does not start or manage the Floci process/container; run Floci separately or with an iii exec/container workflow.
