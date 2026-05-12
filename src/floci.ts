@@ -69,13 +69,29 @@ const DEFAULT_REGION = 'us-east-1'
 const DEFAULT_AWS_COMMAND = 'aws'
 const DEFAULT_TIMEOUT_MS = 10_000
 
-const ALLOWED_SERVICES = new Set([
+export const FLOCI_DOCUMENTED_AWS_CLI_SERVICES = [
+  'acm',
   'apigateway',
   'apigatewayv2',
+  'appconfig',
+  'athena',
+  'autoscaling',
+  'backup',
+  'bedrock-runtime',
   'cloudformation',
   'cloudwatch',
+  'codebuild',
+  'deploy',
   'cognito-idp',
+  'cognito-identity',
   'dynamodb',
+  'ec2',
+  'ecr',
+  'ecs',
+  'eks',
+  'elasticache',
+  'elb',
+  'elbv2',
   'events',
   'firehose',
   'glue',
@@ -84,16 +100,25 @@ const ALLOWED_SERVICES = new Set([
   'kms',
   'lambda',
   'logs',
+  'kafka',
+  'opensearch',
   'rds',
+  'route53',
   's3',
   's3api',
   'scheduler',
   'secretsmanager',
+  'ses',
   'sns',
   'sqs',
   'ssm',
+  'stepfunctions',
   'sts',
-])
+  'textract',
+  'transfer',
+] as const
+
+const ALLOWED_SERVICES = new Set<string>(FLOCI_DOCUMENTED_AWS_CLI_SERVICES)
 
 const BLOCKED_ARGS = new Set(['--profile', '--cli-input-yaml'])
 
