@@ -16,7 +16,9 @@ http://127.0.0.1:4566
 
 This repo keeps Floci external. It does not vendor, fork, or port the emulator.
 
-The worker connects to a running iii Engine over `III_URL`, then registers iii functions that other iii workflows can discover and call.
+The worker connects to a running iii Engine over `III_URL`, then registers local function handlers with `iii.registerFunction(...)`.
+
+There is no worker-owned HTTP endpoint to call. The iii Engine sees this as three registered functions that other iii workflows can discover and call.
 
 ```text
 iii workflow / agent
@@ -32,6 +34,8 @@ local Floci AWS emulator
 ```
 
 ## Registered functions
+
+The implementation registers these directly in `src/index.ts` with `iii.registerFunction(...)`:
 
 - `floci::health`  
   Checks the LocalStack-compatible Floci health endpoint.
