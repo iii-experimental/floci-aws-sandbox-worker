@@ -1,0 +1,25 @@
+{
+  "name": "iii-floci-aws-sandbox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Narrow iii external worker for operating against a local Floci AWS emulator endpoint.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "iii-sdk": "0.11.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
